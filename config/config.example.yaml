@@ -1,0 +1,89 @@
+# DraftDesk configuration.
+# Copy to config/config.yaml, keep one block per section, delete the rest.
+# Secrets are referenced as ${ENV_VAR} and supplied through the environment or .env.
+
+store:
+  name: "Your Store"
+  signature: "Your Store Support"
+  # Addresses your platform uses to relay contact-form submissions. For these,
+  # the customer's address is read from the "Email:" line or the Reply-To header.
+  form_senders: ["noreply@your-platform.example"]
+  # Never draft replies to these (wildcards allowed).
+  ignore_senders: ["orders@your-platform.example", "*@marketing.example"]
+  ignore_subjects: ["you have a new order*"]
+  internal_domains: ["yourstore.com"]
+
+# ----------------------------------------------------------------- mailbox
+# Option A: Microsoft 365 / Outlook
+email:
+  provider: graph
+  tenant_id: ${GRAPH_TENANT_ID}
+  client_id: ${GRAPH_CLIENT_ID}
+  client_secret: ${GRAPH_CLIENT_SECRET}
+  mailbox: support@yourstore.com
+  auth: client_credentials        # or: refresh_token (add refresh_token: ${...})
+
+# Option B: Gmail / Google Workspace
+# email:
+#   provider: gmail
+#   client_id: ${GMAIL_CLIENT_ID}
+#   client_secret: ${GMAIL_CLIENT_SECRET}
+#   refresh_token: ${GMAIL_REFRESH_TOKEN}
+#   address: support@yourstore.com
+
+# Option C: any IMAP + SMTP mailbox
+# email:
+#   provider: imap
+#   imap_host: imap.example.com
+#   smtp_host: smtp.example.com
+#   username: support@yourstore.com
+#   password: ${IMAP_PASSWORD}
+#   drafts_folder: Drafts
+
+# ----------------------------------------------------------------- store
+# Optional. Remove the section (or use provider: none) to draft from the
+# knowledge base alone.
+commerce:
+  provider: bigcommerce
+  store_hash: ${BIGCOMMERCE_STORE_HASH}
+  access_token: ${BIGCOMMERCE_ACCESS_TOKEN}
+
+# commerce:
+#   provider: shopify
+#   shop_domain: your-shop.myshopify.com
+#   access_token: ${SHOPIFY_ACCESS_TOKEN}
+
+# commerce:
+#   provider: woocommerce
+#   site_url: https://yourstore.com
+#   consumer_key: ${WOO_CONSUMER_KEY}
+#   consumer_secret: ${WOO_CONSUMER_SECRET}
+
+# ----------------------------------------------------------------- model
+# Option A: Claude (reads ANTHROPIC_API_KEY from the environment)
+llm:
+  provider: anthropic
+  model: claude-opus-5-5
+  effort: medium
+
+# Option B: anything that speaks the OpenAI Chat Completions format
+# llm:
+#   provider: openai_compatible
+#   base_url: https://api.openai.com/v1      # or your Azure / Ollama / vLLM endpoint
+#   model: your-model-name
+#   api_key: ${LLM_API_KEY}
+#   json_mode: true
+
+# ----------------------------------------------------------------- review
+review:
+  # dashboard: approve and send from the DraftDesk web UI
+  # mailbox:   drafts are saved to the mailbox's Drafts folder and sent from
+  #            your normal mail client (no send permission needed)
+  mode: dashboard
+
+knowledge:
+  paths: ["knowledge/"]            # .md and .txt files: policies, FAQs, tone guide
+
+storage_path: data/draftdesk.db
+poll_interval_seconds: 120
+max_orders: 3

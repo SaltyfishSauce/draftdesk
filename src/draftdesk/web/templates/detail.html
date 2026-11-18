@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block page_title %}#{{ draft.id }} {{ draft.subject }} · {{ title }}{% endblock %}
+{% block content %}
+<p class="small"><a href="/?status={{ draft.status }}">&larr; Back to the queue</a></p>
+<h1>{{ draft.subject or "(no subject)" }}</h1>
+<p class="muted">
+  {{ draft.customer_name }} &lt;{{ draft.customer_email or draft.inbound.from_addr }}&gt;
+  · status: <strong>{{ tabs[draft.status] | lower }}</strong>
+  {% if draft.customer.source == "form_body" %}· address taken from the contact form{% endif %}
+</p>
+
+<div class="cols">
+  <section>
+    <div class="card">
+      <h2>Customer email</h2>
+      <div class="quote tall">{{ draft.inbound.body_text }}</div>
+    </div>
+
+    <div class="card">
+      <h2>Order data given to the model</h2>
+      {% if draft.orders %}
+        {% for o in draft.orders %}
+        <table class="kv" style="margin-bottom:12px">
+          <tr><td>Order</td><td><strong>#{{ o.number }}</strong> · {{ o.status }}</td></tr>
+          <tr><td>Placed</td><td>{{ o.placed_at[:10] }} · {{ o.total }} {{ o.currency }}</td></tr>
+          <tr><td>Items</td><td>{% for i in o["items"] %}{{ i.quantity }} × {{ i.name }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>
+          {% for s in o.shipments %}
+          <tr><td>Shipment</td><td>{{ s.carrier }} {{ s.tracking_number }}</td></tr>
+          {% endfor %}
+        </table>
+        {% endfor %}
+      {% else %}
+        <p class="muted">No order data was used for this draft.</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>History</h2>
+      <ul class="plain">
+        {% for a in audit %}
+        <li><span class="muted">{{ a.at[:16].replace("T", " ") }}</span> · {{ a.actor }} · <strong>{{ a.action.replace("_", " ") }}</strong>{% if a.detail %} · {{ a.detail }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>{{ "Reply sent" if draft.status == "sent" else "Reply" }}</h2>
+
+      {% if draft.status in ("skipped", "error") %}
+        <div class="{{ 'note' if draft.status == 'skipped' else 'banner err' }}">
+          {{ "Skipped" if draft.status == "skipped" else "Could not draft" }}: {{ draft.detail }}
+        </div>
+      {% endif %}
+
+      {% for f in draft.flags %}
+        <div class="note"><strong>{{ flag_labels.get(f, (f, ''))[0] }}.</strong> {{ flag_labels.get(f, (f, ''))[1] }}</div>
+      {% endfor %}
+      {% if draft.reviewer_notes %}
+        <div class="note"><strong>Note from the model.</strong> {{ draft.reviewer_notes }}</div>
+      {% endif %}
+
+      {% if draft.status == "pending" %}
+        <form method="post" action="/drafts/{{ draft.id }}/send">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="label" for="body">To: {{ draft.customer_email }}</label>
+          <textarea id="body" name="body" required>{{ draft.draft_body }}</textarea>
+          <div class="actions">
+            <button class="primary" type="submit">Approve &amp; send</button>
+          </div>
+        </form>
+        <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+        <form method="post" action="/drafts/{{ draft.id }}/regenerate">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="label" for="instruction">Ask for a different draft (optional instruction)</label>
+          <input id="instruction" type="text" name="instruction" placeholder="e.g. offer a replacement instead of a refund">
+          <div class="actions"><button type="submit">Regenerate</button></div>
+        </form>
+        <form method="post" action="/drafts/{{ draft.id }}/reject" style="margin-top:8px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <button class="danger" type="submit">Reject, I'll reply myself</button>
+        </form>
+      {% elif draft.status == "error" %}
+        <form method="post" action="/drafts/{{ draft.id }}/regenerate">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <div class="actions"><button class="primary" type="submit">Try drafting again</button></div>
+        </form>
+      {% elif draft.final_body or draft.draft_body %}
+        <div class="quote tall">{{ draft.final_body or draft.draft_body }}</div>
+      {% endif %}
+
+      {% if draft.model %}<p class="muted small" style="margin-bottom:0">Drafted by {{ draft.model }}</p>{% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="toolbar">
+  <nav class="tabs" aria-label="Queues">
+    {% for key, label in tabs.items() %}
+      {% if key != "in_mailbox" or counts[key] %}
+      <a href="/?status={{ key }}" class="{{ 'on' if key == status }}">{{ label }}<span class="n">{{ counts[key] }}</span></a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+  <form method="post" action="/poll">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button type="submit">Check inbox now</button>
+  </form>
+</div>
+
+{% if not drafts %}
+  <div class="card empty">
+    {% if status == "pending" %}Nothing waiting for review.{% else %}Nothing here yet.{% endif %}
+  </div>
+{% endif %}
+
+{% for d in drafts %}
+<article class="card">
+  <div class="row">
+    <span class="who">{{ d.customer_name or d.customer_email or d.inbound.from_addr }}</span>
+    <span class="muted small">{{ d.customer_email }}</span>
+    <span class="muted small" style="margin-left:auto">#{{ d.id }} · {{ d.created_at[:16].replace("T", " ") }} UTC</span>
+  </div>
+  <div class="subject"><a href="/drafts/{{ d.id }}" style="color:inherit">{{ d.subject or "(no subject)" }}</a></div>
+
+  {% if status in ("skipped", "error") %}
+    <div class="{{ 'note' if status == 'skipped' else 'banner err' }}">
+      {{ "Skipped" if status == "skipped" else "Could not draft" }}: {{ d.detail }}
+    </div>
+    <div class="actions"><a class="btn" href="/drafts/{{ d.id }}">Open</a></div>
+  {% else %}
+    <div class="chips">
+      {% if d.category %}<span class="chip">{{ d.category.replace("_", " ") }}</span>{% endif %}
+      {% if d.language %}<span class="chip">{{ d.language }}</span>{% endif %}
+      {% for f in d.flags %}
+        <span class="chip {{ 'danger' if f in ('possible_prompt_injection', 'order_belongs_to_other_customer') else 'warn' }}"
+              title="{{ flag_labels.get(f, (f, ''))[1] }}">{{ flag_labels.get(f, (f, ''))[0] }}</span>
+      {% endfor %}
+    </div>
+    <div class="cols">
+      <div>
+        <div class="label">Customer wrote</div>
+        <div class="quote">{{ d.inbound.body_text }}</div>
+      </div>
+      <div>
+        <div class="label">{{ "Reply sent" if status == "sent" else "Drafted reply" }}</div>
+        <div class="quote">{{ d.final_body or d.draft_body }}</div>
+      </div>
+    </div>
+    {% if status == "pending" %}
+    <div class="actions">
+      {% if not d.flags %}
+      <form class="inline" method="post" action="/drafts/{{ d.id }}/send">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="primary" type="submit">Approve &amp; send</button>
+      </form>
+      <a class="btn" href="/drafts/{{ d.id }}">Edit</a>
+      {% else %}
+      <a class="btn primary" href="/drafts/{{ d.id }}">Review before sending</a>
+      <span class="muted small">One-click send is off because a check was raised.</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% endif %}
+</article>
+{% endfor %}
+{% endblock %}

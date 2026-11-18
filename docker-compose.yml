@@ -1,0 +1,14 @@
+services:
+  draftdesk:
+    build: .
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:8000"   # put a TLS-terminating reverse proxy in front for remote access
+    volumes:
+      - ./config:/app/config:ro
+      - ./knowledge:/app/knowledge:ro
+      - draftdesk-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  draftdesk-data:

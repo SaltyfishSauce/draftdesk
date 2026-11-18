@@ -1,0 +1,21 @@
+[
+  {"number": "1041", "status": "Shipped", "placed_at": "2026-11-02T15:20:00Z", "total": "84.50", "currency": "USD",
+   "customer_email": "emma.clark@example.com",
+   "items": [{"name": "Trail Daypack 22L - Moss", "quantity": 1}, {"name": "Merino Hiking Socks (2 pack)", "quantity": 1}],
+   "shipments": [{"carrier": "UPS", "tracking_number": "1Z999AA10123456784", "tracking_url": "https://www.ups.com/track?tracknum=1Z999AA10123456784", "shipped_at": "2026-11-04T18:05:00Z"}]},
+  {"number": "1038", "status": "Shipped", "placed_at": "2026-10-30T09:12:00Z", "total": "129.00", "currency": "USD",
+   "customer_email": "li.wei@example.com",
+   "items": [{"name": "Insulated Jacket - Slate, M", "quantity": 1}],
+   "shipments": [{"carrier": "DHL Express", "tracking_number": "JD014600006281230704", "tracking_url": "https://www.dhl.com/track?id=JD014600006281230704", "shipped_at": "2026-11-01T11:40:00Z"}]},
+  {"number": "1045", "status": "Awaiting Fulfillment", "placed_at": "2026-11-07T21:48:00Z", "total": "46.00", "currency": "USD",
+   "customer_email": "carlos.mendez@example.com",
+   "items": [{"name": "Stainless Camp Mug 350ml", "quantity": 2}], "shipments": []},
+  {"number": "1029", "status": "Completed", "placed_at": "2026-10-18T13:02:00Z", "total": "212.00", "currency": "USD",
+   "customer_email": "nina.patel@example.com",
+   "items": [{"name": "Two-Person Tent - Dusk", "quantity": 1}],
+   "shipments": [{"carrier": "FedEx", "tracking_number": "FX7742019934501", "tracking_url": "https://www.fedex.com/fedextrack/?trknbr=FX7742019934501", "shipped_at": "2026-10-20T16:30:00Z"}]},
+  {"number": "1033", "status": "Shipped", "placed_at": "2026-10-25T10:00:00Z", "total": "310.00", "currency": "USD",
+   "customer_email": "private.customer@example.com",
+   "items": [{"name": "Down Sleeping Bag -5C", "quantity": 1}],
+   "shipments": [{"carrier": "UPS", "tracking_number": "1Z999AA10987654321", "tracking_url": "https://www.ups.com/track?tracknum=1Z999AA10987654321", "shipped_at": "2026-10-27T09:00:00Z"}]}
+]
